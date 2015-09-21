@@ -32,8 +32,8 @@ with open('vocabulary_raw', 'w') as f1:
         lines1 = []
         lines2 = []
         for word, num in word_to_num.items():
-            lines1.append(word + ' ' + str(num) + '\n')
-            lines2.append(str(num) + ' ' + word + '\n')
+            lines1.append(word + ' ' + str(num+1) + '\n')
+            lines2.append(str(num+1) + ' ' + word + '\n')
         f1.writelines(lines1)
         f2.writelines(lines2)
 
@@ -42,8 +42,8 @@ with open('x_train', 'w') as f1:
         lines1 = []
         lines2 = []
         for i in range(len(X_train)):
-            lines1.append(' '.join([str(k) for k in X_train[i]]) + '\n')
-            lines2.append(str(y_train[i]) + '\n')
+            lines1.append(' '.join([str(k+1) for k in X_train[i]]) + '\n')
+            lines2.append(str(y_train[i]+1) + '\n')
         f1.writelines(lines1)
         f2.writelines(lines2)
 
@@ -52,8 +52,8 @@ with open('x_dev', 'w') as f1:
         lines1 = []
         lines2 = []
         for i in range(len(X_dev)):
-            lines1.append(' '.join([str(k) for k in X_dev[i]]) + '\n')
-            lines2.append(str(y_dev[i]) + '\n')
+            lines1.append(' '.join([str(k+1) for k in X_dev[i]]) + '\n')
+            lines2.append(str(y_dev[i]+1) + '\n')
         f1.writelines(lines1)
         f2.writelines(lines2)
 
