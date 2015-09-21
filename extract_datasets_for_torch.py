@@ -27,6 +27,36 @@ docs = du.load_dataset('data/ner/test.masked')
 X_test, y_test = du.docs_to_windows(docs, word_to_num, tag_to_num,
                                     wsize=windowsize)
 
+with open('vocabulary_raw', 'w') as f1:
+    with open('inv_vocabulary_raw', 'w') as f2:
+        lines1 = []
+        lines2 = []
+        for word, num in word_to_num.items():
+            lines1.append(word + ' ' + str(num) + '\n')
+            lines2.append(str(num) + ' ' + word + '\n')
+        f1.writelines(lines1)
+        f2.writelines(lines2)
 
-print(X_dev)
-print(y_train)
+with open('x_train', 'w') as f1:
+    with open('y_train', 'w') as f2:
+        lines1 = []
+        lines2 = []
+        for i in range(len(X_train)):
+            lines1.append(' '.join([str(k) for k in X_train[i]]) + '\n')
+            lines2.append(str(y_train[i]) + '\n')
+        f1.writelines(lines1)
+        f2.writelines(lines2)
+
+with open('x_dev', 'w') as f1:
+    with open('y_dev', 'w') as f2:
+        lines1 = []
+        lines2 = []
+        for i in range(len(X_dev)):
+            lines1.append(' '.join([str(k) for k in X_dev[i]]) + '\n')
+            lines2.append(str(y_dev[i]) + '\n')
+        f1.writelines(lines1)
+        f2.writelines(lines2)
+
+
+
+
