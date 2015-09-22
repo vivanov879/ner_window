@@ -54,8 +54,9 @@ end
 x_train = convert2tensors(x_train_raw)
 y_train = convert2tensors(y_train_raw)
 
-batch_size = 2
+batch_size = 1000
 n_data = x_train:size(1)
+data_index = 1
 
 function gen_batch()
   end_index = data_index + batch_size
@@ -89,6 +90,56 @@ h = nn.Tanh()(h)
 z = nn.Linear(100, 5)(h)
 z = nn.SoftMax()(z)
 m = nn.gModule({x_raw}, {z, h})
+
+
+local params, grad_params = model_utils.combine_all_parameters(m)
+params:uniform(-0.15, 0.15)
+
+criterion = nn.ClassNLLCriterion()
+
+
+
+function feval(x_arg)
+    if x_arg ~= params then
+        params:copy(x_arg)
+    end
+    grad_params:zero()
+    
+    local loss = 0
+    
+    features, labels = gen_batch()
+            
+    ------------------- forward pass -------------------
+    prediction, h = unpack(m:forward(features))
+    loss_m = criterion:forward(prediction, labels)
+    loss = loss + loss_m
+    
+    -- complete reverse order of the above
+    dh = torch.zeros(h:size())
+    dprediction = criterion:backward(prediction, labels)
+    dfeatures = m:backward(features, {dprediction, dh})
+    
+    return loss, grad_params
+
+end
+
+
+optim_state = {learningRate = 1e-1}
+
+for i = 1, 1000000 do
+
+  local _, loss = optim.adagrad(feval, params, optim_state)
+  if i % 10 == 0 then
+    local _, predicted_class  = prediction:max(2)
+    print(prediction[{1, {}}])
+    print(string.format("center_word = %s, predicted class = %d, target class = %d, loss = %6.8f, gradnorm = %6.4e", vocabulary[features[1][math.floor(features:size(2) / 2)]], predicted_class[1][1], labels[1], loss[1], grad_params:norm()))
+  end
+  
+end
+
+
+
+
 
 dummy_pass = 1
 
