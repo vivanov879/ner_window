@@ -126,7 +126,7 @@ end
 
 optim_state = {learningRate = 1e-1}
 
-for i = 1, 1000000 do
+for i = 1, 100 do
 
   local _, loss = optim.adagrad(feval, params, optim_state)
   if i % 10 == 0 then
@@ -138,8 +138,20 @@ for i = 1, 1000000 do
 end
 
 
+x_dev_raw = read_words('x_dev')
+y_dev_raw = read_words('y_dev')
+x_dev = convert2tensors(x_dev_raw)
+y_dev = convert2tensors(y_dev_raw)
 
+for i = 1, x_dev:size(1) do 
+  features = x_dev[{{i}, {}}]
+  labels = y_dev[{{i}, 1}]
+  prediction, h = unpack(m:forward(features))
+  loss = criterion:forward(prediction, labels)
+  local _, predicted_class  = prediction:max(2)
+  print(prediction[{1, {}}])
+  print(string.format("center_word = %s, predicted class = %d, target class = %d, loss = %6.8f, gradnorm = %6.4e", vocabulary[features[1][math.floor(features:size(2) / 2)]], predicted_class[1][1], labels[1], loss, grad_params:norm()))
 
-
+end
 dummy_pass = 1
 
