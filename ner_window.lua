@@ -38,6 +38,7 @@ for i, sentence in pairs(vocabulary_raw) do
   inv_vocabulary[sentence[2]] = tonumber(sentence[1])
 end
 
+vocab_size = #vocabulary
 
 function convert2tensors(sentences)
   local t = torch.Tensor(#sentences, #sentences[1])
@@ -61,38 +62,33 @@ function gen_batch()
   if end_index > n_data then
     end_index = n_data
     data_index = 1
-
   end
   start_index = end_index - batch_size
-
-  sentences = sentences_en
   
-  local batch = torch.Tensor(batch_size, 3)
-  local target = 1
-  if data_index % 2 == 0 then
-    target = -1
-  end
-  for k = 1, batch_size do
-    sentence = sentences[start_index + k - 1]
-    center_word_index = math.random(#sentence)
-    center_word = sentence[center_word_index]
-    context_index = center_word_index + (math.random() > 0.5 and 1 or -1) * math.random(2, math.floor(context_size/2))
-    context_index = math.clamp(context_index, 1, #sentence)
-    outer_word = sentence[context_index]
-    neg_word = math.random(#vocabulary_en)
-    batch[k][1] = center_word
-    if target == 1 then
-      batch[k][2] = outer_word
-    else 
-      batch[k][2] = neg_word
-    end
-  end
+  features = x_train[{{data_index, data_index + batch_size - 1}, {}}]
+  labels = y_train[{{data_index, data_index + batch_size - 1}, 1}]
+    
   data_index = data_index + 1
   if data_index > n_data then 
     data_index = 1
   end
-  return batch, target
+  return features, labels
 end
 
 
+x_raw = nn.Identity()()
+l = {}
+for i = 1, x_train:size(2) do
+  x = nn.Select(2,i)(x_raw)
+  x = Embedding(vocab_size, 50)(x)
+  l[#l + 1] = x
+end
+x = nn.JoinTable(2)(l)
+h = nn.Linear(50 * x_train:size(2), 100)(x)
+h = nn.Tanh()(h)
+z = nn.Linear(100, 5)(h)
+z = nn.SoftMax()(z)
+m = nn.gModule({x_raw}, {z, h})
+
+dummy_pass = 1
 

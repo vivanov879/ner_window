@@ -27,8 +27,8 @@ docs = du.load_dataset('data/ner/test.masked')
 X_test, y_test = du.docs_to_windows(docs, word_to_num, tag_to_num,
                                     wsize=windowsize)
 
-with open('vocabulary_raw', 'w') as f1:
-    with open('inv_vocabulary_raw', 'w') as f2:
+with open('inv_vocabulary_raw', 'w') as f1:
+    with open('vocabulary_raw', 'w') as f2:
         lines1 = []
         lines2 = []
         for word, num in word_to_num.items():
