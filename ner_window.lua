@@ -8,6 +8,34 @@ require 'table_utils'
 nngraph.setDebug(true)
 
 
+function calc_f1(prediction, target)
+  local accum = 0
+  for c = 2, 5 do
+    local p = prediction:clone()
+    local t = target:clone()
+    p = torch.eq(p, c):double()
+    t = torch.eq(t, c):double()
+    d = torch.add(p, -t)
+    d = torch.abs(d)
+    local true_positives = torch.sum(d, 1)[1][1]
+    p = prediction:clone()
+    p = torch.eq(p, c):double()
+    local all_predicted = torch.sum(p, 1)[1][1]
+    t = target:clone()
+    local all_targets = torch.sum(t, 1)[1][1]
+    local precision = true_positives / all_predicted
+    local recall = true_positives / all_targets
+    
+    local f1_score = 2 * precision * recall / (precision + recall)
+    accum = accum + f1_score 
+    
+  end
+  return accum / 4
+  
+  
+  
+end
+
 function read_words(fn)
   fd = io.lines(fn)
   sentences = {}
@@ -54,7 +82,13 @@ end
 x_train = convert2tensors(x_train_raw)
 y_train = convert2tensors(y_train_raw)
 
-batch_size = 1000
+x_dev_raw = read_words('x_dev')
+y_dev_raw = read_words('y_dev')
+x_dev = convert2tensors(x_dev_raw)
+y_dev = convert2tensors(y_dev_raw)
+
+
+batch_size = 10000
 n_data = x_train:size(1)
 data_index = 1
 
@@ -123,35 +157,34 @@ function feval(x_arg)
 
 end
 
+optim_state = {learningRate = 1e-2, weightDecay = 1e-6}
 
-optim_state = {learningRate = 1e-1}
-
-for i = 1, 100 do
-
-  local _, loss = optim.adagrad(feval, params, optim_state)
+for i = 1, 1000 do
+  local _, loss = optim.sgd(feval, params, optim_state)
   if i % 10 == 0 then
     local _, predicted_class  = prediction:max(2)
     print(prediction[{1, {}}])
     print(string.format("center_word = %s, predicted class = %d, target class = %d, loss = %6.8f, gradnorm = %6.4e", vocabulary[features[1][math.floor(features:size(2) / 2)]], predicted_class[1][1], labels[1], loss[1], grad_params:norm()))
   end
-  
+  if i % 10 == 0 then 
+    features = x_dev[{{}, {}}]
+    labels = y_dev[{{}, 1}]
+    prediction, h = unpack(m:forward(features))
+    loss = criterion:forward(prediction, labels)
+    
+    local _, predicted_class  = prediction:max(2)
+    
+    f1_score = calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2)))
+    print(string.format('dev loss = %6.8f, f1_score = %6.8f', loss, f1_score))
+
+  end
 end
 
 
-x_dev_raw = read_words('x_dev')
-y_dev_raw = read_words('y_dev')
-x_dev = convert2tensors(x_dev_raw)
-y_dev = convert2tensors(y_dev_raw)
 
-for i = 1, x_dev:size(1) do 
-  features = x_dev[{{i}, {}}]
-  labels = y_dev[{{i}, 1}]
-  prediction, h = unpack(m:forward(features))
-  loss = criterion:forward(prediction, labels)
-  local _, predicted_class  = prediction:max(2)
-  print(prediction[{1, {}}])
-  print(string.format("center_word = %s, predicted class = %d, target class = %d, loss = %6.8f, gradnorm = %6.4e", vocabulary[features[1][math.floor(features:size(2) / 2)]], predicted_class[1][1], labels[1], loss, grad_params:norm()))
-
-end
 dummy_pass = 1
+
+
+
+
 
