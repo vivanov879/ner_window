@@ -61,6 +61,7 @@ with open('word_vectors', 'w') as f:
     lines = []
     for i in range(len(wv)):
         lines.append(' '.join([str(k) for k in wv[i]]) + '\n')
+    f.writelines(lines)
 
 
 
