@@ -118,13 +118,9 @@ end
 
 
 x_raw = nn.Identity()()
-l = {}
-for i = 1, x_train:size(2) do
-  x = nn.Select(2,i)(x_raw)
-  x = Embedding(vocab_size, 50)(x)
-  l[#l + 1] = x
-end
-x = nn.JoinTable(2)(l)
+x = nn.Reshape(batch_size * x_train:size(2))(x_raw)
+x = Embedding(vocab_size, 50)(x)
+x = nn.Reshape(batch_size, 50 * x_train:size(2))(x)
 h = nn.Linear(50 * x_train:size(2), 100)(x)
 h = nn.Tanh()(h)
 z = nn.Linear(100, 5)(h)
@@ -169,8 +165,8 @@ for i = 1, 10000 do
   local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
-    local features = x_dev[{{}, {}}]
-    local labels = y_dev[{{}, 1}]
+    local features = x_dev[{{1, batch_size}, {}}]
+    local labels = y_dev[{{1, batch_size}, 1}]
     local prediction, h = unpack(m:forward(features))
     local _, predicted_class  = prediction:max(2)
     local loss_dev = criterion:forward(prediction, labels)
