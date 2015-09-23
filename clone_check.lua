@@ -46,13 +46,14 @@ params1:uniform(-0.08, 0.08)
 
 
 clones = model_utils.clone_many_times(source, 2)
+--clones[1]:share(clones[2], 'weight', 'gradWeight')
 
 
 x1 = nn.Identity()()
 x2 = nn.Identity()()
 
-z1 = nn.Linear(3,2)(x1) 
-z2 = nn.Linear(3,2)(x2) 
+z1 = clones[1](x1) 
+z2 = clones[2](x2) 
 
 z = nn.CAddTable()({z1, z2})
 m = nn.gModule({x1, x2}, {z})
@@ -90,7 +91,8 @@ for i = 1, 10000 do
   local _, loss = optim.adagrad(feval, params, optim_state)
   if i % 10 == 0 then
       print(string.format("iteration %4d, loss = %6.6f", i, loss[1]))
-      --print(params)
+      print('-----------')
+      print(params)
       
   end
 end
