@@ -156,25 +156,19 @@ function feval(x_arg)
 
 end
 
-optim_state = {learningRate = 1e-2, weightDecay = 1e-4}
+optim_state = {learningRate = 1e-4, weightDecay = 0}
 
 for i = 1, 1000 do
   local _, loss = optim.sgd(feval, params, optim_state)
-  if i % 10 == 0 then
-    local _, predicted_class  = prediction:max(2)
-    print(prediction[{1, {}}])
-    print(string.format("center_word = %s, predicted class = %d, target class = %d, loss = %6.8f, gradnorm = %6.4e", vocabulary[features[1][math.floor(features:size(2) / 2)]], predicted_class[1][1], labels[1], loss[1], grad_params:norm()))
-  end
-  if i % 10 == 0 then 
-    features = x_dev[{{}, {}}]
-    labels = y_dev[{{}, 1}]
-    prediction, h = unpack(m:forward(features))
-    loss = criterion:forward(prediction, labels)
+  if i % 3 == 0 then
     
+    local features = x_dev[{{}, {}}]
+    local labels = y_dev[{{}, 1}]
+    local prediction, h = unpack(m:forward(features))
     local _, predicted_class  = prediction:max(2)
-    
-    f1_score, precision, recall = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
-    print(string.format('dev loss = %6.8f, f1_score = %6.8f', loss, f1_score))
+    local loss_dev = criterion:forward(prediction, labels)
+    local f1_score, precision, recall = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
+    print(string.format("loss_train = %6.8f, loss_dev = %6.8f, f1_score = %6.8f, precision = %6.8f, recall = %6.8f, gradnorm = %6.4e", loss[1], loss_dev, f1_score, precision, recall, grad_params:norm()))
 
   end
 end
