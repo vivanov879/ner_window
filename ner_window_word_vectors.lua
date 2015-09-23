@@ -12,15 +12,21 @@ function calc_f1(prediction, target)
   local f1_accum = 0
   local precision_accum = 0
   local recall_accum = 0
-  for c = 2, 5 do
+  for c = 1, 5 do
     local p = torch.eq(prediction, c):double()
     local t = torch.eq(target, c):double()
-    local true_positives = torch.mm(t:t(),p)
-    true_positives = torch.sum(true_positives, 1)[1][1]
-    local all_predicted = torch.sum(p, 1)[1][1]
-    local all_targets = torch.sum(t, 1)[1][1]
-    local precision = true_positives / all_predicted
-    local recall = true_positives / all_targets
+    local true_positives = torch.mm(t:t(),p)[1][1]
+        
+    p = torch.eq(prediction, c):double()
+    t = torch.ne(target, c):double()
+    local false_positives = torch.mm(t:t(),p)[1][1]
+    
+    p = torch.ne(prediction, c):double()
+    t = torch.eq(target, c):double()
+    local false_negatives = torch.mm(t:t(),p)[1][1]
+    
+    local precision = true_positives / (true_positives + false_positives)
+    local recall = true_positives / (true_positives + false_negatives)
     
     local f1_score = 2 * precision * recall / (precision + recall)
     f1_accum = f1_accum + f1_score 
@@ -29,7 +35,7 @@ function calc_f1(prediction, target)
     
     
   end
-  return {f1_accum / 4, precision_accum / 4, recall_accum / 4}
+  return {f1_accum / 5, precision_accum / 5, recall_accum / 5}
   
   
   
@@ -86,10 +92,12 @@ y_dev_raw = read_words('y_dev')
 x_dev = convert2tensors(x_dev_raw)
 y_dev = convert2tensors(y_dev_raw)
 
+assert(x_train:size(2) == x_dev:size(2))
+
 word_vectors = read_words('wordVectors.txt')
 word_vectors = convert2tensors(word_vectors)
 
-batch_size = 2
+batch_size = 1000
 n_data = x_train:size(1)
 data_index = 1
 
@@ -130,7 +138,9 @@ m = nn.gModule({x_raw}, {z, h})
 local params, grad_params = model_utils.combine_all_parameters(m)
 params:uniform(-0.15, 0.15)
 
-criterion = nn.ClassNLLCriterion()
+weights = torch.ones(5)
+--weights[1] = 0.1
+criterion = nn.ClassNLLCriterion(weights)
 
 
 
@@ -161,11 +171,18 @@ end
 optim_state = {learningRate = 1e-2}
 
 for i = 1, 1000 do
-  local _, loss = optim.adagrad(feval, params, optim_state)
+  local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
-    local features = x_dev[{{}, {}}]
-    local labels = y_dev[{{}, 1}]
+    local batch_size = x_dev:size(1)
+    local features = torch.Tensor(batch_size, x_dev:size(2), word_vectors:size(2))
+    local labels = torch.Tensor(batch_size)
+    for k = 1, batch_size do
+      for i = 1, x_dev:size(2) do 
+        features[{{k}, {i}, {}}] = word_vectors[{{x_dev[k][i]}, {}}]
+        labels[k] = y_dev[k][1]
+      end
+    end
     local prediction, h = unpack(m:forward(features))
     local _, predicted_class  = prediction:max(2)
     local loss_dev = criterion:forward(prediction, labels)

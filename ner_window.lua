@@ -12,15 +12,21 @@ function calc_f1(prediction, target)
   local f1_accum = 0
   local precision_accum = 0
   local recall_accum = 0
-  for c = 2, 5 do
+  for c = 1, 5 do
     local p = torch.eq(prediction, c):double()
     local t = torch.eq(target, c):double()
-    local true_positives = torch.mm(t:t(),p)
-    true_positives = torch.sum(true_positives, 1)[1][1]
-    local all_predicted = torch.sum(p, 1)[1][1]
-    local all_targets = torch.sum(t, 1)[1][1]
-    local precision = true_positives / all_predicted
-    local recall = true_positives / all_targets
+    local true_positives = torch.mm(t:t(),p)[1][1]
+        
+    p = torch.eq(prediction, c):double()
+    t = torch.ne(target, c):double()
+    local false_positives = torch.mm(t:t(),p)[1][1]
+    
+    p = torch.ne(prediction, c):double()
+    t = torch.eq(target, c):double()
+    local false_negatives = torch.mm(t:t(),p)[1][1]
+    
+    local precision = true_positives / (true_positives + false_positives)
+    local recall = true_positives / (true_positives + false_negatives)
     
     local f1_score = 2 * precision * recall / (precision + recall)
     f1_accum = f1_accum + f1_score 
@@ -29,7 +35,8 @@ function calc_f1(prediction, target)
     
     
   end
-  return {f1_accum / 4, precision_accum / 4, recall_accum / 4}
+  return {f1_accum / 5, precision_accum / 5, recall_accum / 5}
+  
   
   
   
@@ -159,7 +166,7 @@ end
 optim_state = {learningRate = 1e-2}
 
 for i = 1, 1000 do
-  local _, loss = optim.adagrad(feval, params, optim_state)
+  local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
     local features = x_dev[{{}, {}}]
