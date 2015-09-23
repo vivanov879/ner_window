@@ -161,7 +161,7 @@ end
 
 optim_state = {learningRate = 1e-2}
 
-for i = 1, 10 do
+for i = 1, 200 do
   local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
@@ -229,9 +229,7 @@ for word_position = 1, x_train:size(2) do
         current_max = predicted_max
         current_argmax = predicted_argmax
       end
-      print(current_argmax)
-      print(vocabulary[current_argmax])
-        
+       
     end
     print(string.format('%s has highest probability for layer h neuron %d in position %d', vocabulary[current_argmax], considered_neuron, word_position))
   end
