@@ -133,7 +133,7 @@ m = nn.gModule({x_raw}, {z, h})
 
 
 local params, grad_params = model_utils.combine_all_parameters(m)
-params:uniform(-0.15, 0.15)
+params:uniform(-0.08, 0.08)
 
 criterion = nn.ClassNLLCriterion()
 
@@ -163,9 +163,9 @@ function feval(x_arg)
 
 end
 
-optim_state = {learningRate = 1e-2}
+optim_state = {learningRate = 1e-3}
 
-for i = 1, 1000 do
+for i = 1, 10000 do
   local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
