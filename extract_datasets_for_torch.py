@@ -57,6 +57,10 @@ with open('x_dev', 'w') as f1:
         f1.writelines(lines1)
         f2.writelines(lines2)
 
+with open('word_vectors', 'w') as f:
+    lines = []
+    for i in range(len(wv)):
+        lines.append(' '.join([str(k) for k in wv[i]]) + '\n')
 
 
 

@@ -159,9 +159,9 @@ function feval(x_arg)
 
 end
 
-optim_state = {learningRate = 1e-3}
+optim_state = {learningRate = 1e-2}
 
-for i = 1, 10000 do
+for i = 1, 200 do
   local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
@@ -182,6 +182,29 @@ for i = 1, 10000 do
 end
 
 
+-- input words that give the highest probability P(class | word)
+
+for considered_class = 1, 5 do
+  current_argmax = 1
+  current_max = -1e+12
+  for k = 1, math.floor(vocab_size / batch_size) do 
+    
+    features = torch.ones(batch_size, 3)
+    for i = 1 + batch_size*(k-1), batch_size * k - 1 do 
+      features[i%batch_size][2] = i
+    end
+    local prediction, h = unpack(m:forward(features))
+    local predicted_max, predicted_argmax = prediction[{{}, {considered_class}}]:max(1)
+    predicted_max = predicted_max[1][1]
+    predicted_argmax = predicted_argmax[1][1]
+    if predicted_max > current_max then
+      current_max = predicted_max
+      current_argmax = predicted_argmax
+    end
+      
+  end
+  print(string.format('%s has highest probability for class %d', vocabulary[current_argmax], considered_class)
+end
 
 dummy_pass = 1
 

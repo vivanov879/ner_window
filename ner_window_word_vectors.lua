@@ -94,7 +94,7 @@ y_dev = convert2tensors(y_dev_raw)
 
 assert(x_train:size(2) == x_dev:size(2))
 
-word_vectors = read_words('wordVectors.txt')
+word_vectors = read_words('word_vectors')
 word_vectors = convert2tensors(word_vectors)
 
 batch_size = 1000
