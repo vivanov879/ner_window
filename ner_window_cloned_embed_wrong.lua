@@ -118,9 +118,13 @@ end
 
 
 x_raw = nn.Identity()()
-x = nn.Reshape(batch_size * x_train:size(2))(x_raw)
-x = Embedding(vocab_size, 50)(x)
-x = nn.Reshape(batch_size, 50 * x_train:size(2))(x)
+l = {}
+for i = 1, x_train:size(2) do
+  x = nn.Select(2,i)(x_raw)
+  x = Embedding(vocab_size, 50)(x)
+  l[#l + 1] = x
+end
+x = nn.JoinTable(2)(l)
 h = nn.Linear(50 * x_train:size(2), 100)(x)
 h = nn.Tanh()(h)
 z = nn.Linear(100, 5)(h)
@@ -165,18 +169,13 @@ for i = 1, 10000 do
   local _, loss = optim.adam(feval, params, optim_state)
   if i % 10 == 0 then
     
-    local loss_train = loss[1]
-    local _, predicted_class  = prediction:max(2)
-    local f1_score_train, precision_train, recall_train = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
-        
-    local features = x_dev[{{1, batch_size}, {}}]
-    local labels = y_dev[{{1, batch_size}, 1}]
+    local features = x_dev[{{}, {}}]
+    local labels = y_dev[{{}, 1}]
     local prediction, h = unpack(m:forward(features))
     local _, predicted_class  = prediction:max(2)
     local loss_dev = criterion:forward(prediction, labels)
-    local f1_score_dev, precision_dev, recall_dev = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
-    print(string.format("train set: loss = %6.8f, f1_score = %6.8f, precision = %6.8f, recall = %6.8f, grad_params:norm() = %6.4e", loss_train, f1_score_train, precision_train, recall_train, grad_params:norm()))
-    print(string.format("dev set:   loss = %6.8f, f1_score = %6.8f, precision = %6.8f, recall = %6.8f", loss_dev, f1_score_dev, precision_dev, recall_dev))
+    local f1_score, precision, recall = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
+    print(string.format("loss_train = %6.8f, loss_dev = %6.8f, f1_score = %6.8f, precision = %6.8f, recall = %6.8f, gradnorm = %6.4e", loss[1], loss_dev, f1_score, precision, recall, grad_params:norm()))
 
   end
 end
