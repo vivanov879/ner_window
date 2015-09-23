@@ -182,6 +182,7 @@ for i = 1, 10 do
 end
 
 
+
 -- input words that give the highest probability P(class | word)
 for word_position = 1, x_train:size(2) do
   for considered_class = 1, 5 do
@@ -207,6 +208,8 @@ for word_position = 1, x_train:size(2) do
   end
 end
 
+
+-- input word that give highest response from specific neurons in layer h
 for word_position = 1, x_train:size(2) do
   for _, considered_neuron in pairs({98, 35, 17, 64, 38}) do
     current_argmax = 1
@@ -222,15 +225,17 @@ for word_position = 1, x_train:size(2) do
       predicted_max = predicted_max[1][1]
       predicted_argmax = predicted_argmax[1][1]
       if predicted_max > current_max then
+        
         current_max = predicted_max
         current_argmax = predicted_argmax
       end
+      print(current_argmax)
+      print(vocabulary[current_argmax])
         
     end
-    print(string.format('%s has highest probability for layer h neuron %d in position %s', vocabulary[current_argmax], considered_class, word_position))
+    print(string.format('%s has highest probability for layer h neuron %d in position %d', vocabulary[current_argmax], considered_neuron, word_position))
   end
 end
-
 
 
 
