@@ -9,28 +9,27 @@ nngraph.setDebug(true)
 
 
 function calc_f1(prediction, target)
-  local accum = 0
+  local f1_accum = 0
+  local precision_accum = 0
+  local recall_accum = 0
   for c = 2, 5 do
-    local p = prediction:clone()
-    local t = target:clone()
-    p = torch.eq(p, c):double()
-    t = torch.eq(t, c):double()
-    d = torch.add(p, -t)
-    d = torch.abs(d)
-    local true_positives = torch.sum(d, 1)[1][1]
-    p = prediction:clone()
-    p = torch.eq(p, c):double()
+    local p = torch.eq(prediction, c):double()
+    local t = torch.eq(target, c):double()
+    local true_positives = torch.mm(t:t(),p)
+    true_positives = torch.sum(true_positives, 1)[1][1]
     local all_predicted = torch.sum(p, 1)[1][1]
-    t = target:clone()
     local all_targets = torch.sum(t, 1)[1][1]
     local precision = true_positives / all_predicted
     local recall = true_positives / all_targets
     
     local f1_score = 2 * precision * recall / (precision + recall)
-    accum = accum + f1_score 
+    f1_accum = f1_accum + f1_score 
+    precision_accum = precision_accum + precision
+    recall_accum = recall_accum + recall
+    
     
   end
-  return accum / 4
+  return {f1_accum / 4, precision_accum / 4, recall_accum / 4}
   
   
   
@@ -157,7 +156,7 @@ function feval(x_arg)
 
 end
 
-optim_state = {learningRate = 1e-2, weightDecay = 1e-6}
+optim_state = {learningRate = 1e-2, weightDecay = 1e-4}
 
 for i = 1, 1000 do
   local _, loss = optim.sgd(feval, params, optim_state)
@@ -174,7 +173,7 @@ for i = 1, 1000 do
     
     local _, predicted_class  = prediction:max(2)
     
-    f1_score = calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2)))
+    f1_score, precision, recall = unpack(calc_f1(predicted_class, torch.reshape(labels, predicted_class:size(1), predicted_class:size(2))))
     print(string.format('dev loss = %6.8f, f1_score = %6.8f', loss, f1_score))
 
   end
