@@ -124,7 +124,7 @@ x = nn.Reshape(batch_size, 50 * x_train:size(2))(x)
 h = nn.Linear(50 * x_train:size(2), 100)(x)
 h = nn.Tanh()(h)
 z = nn.Linear(100, 5)(h)
-z = nn.SoftMax()(z)
+z = nn.LogSoftMax()(z)
 m = nn.gModule({x_raw}, {z, h})
 
 
