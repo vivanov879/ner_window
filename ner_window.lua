@@ -156,11 +156,11 @@ function feval(x_arg)
 
 end
 
-optim_state = {learningRate = 1e-4, weightDecay = 0}
+optim_state = {learningRate = 1e-2}
 
 for i = 1, 1000 do
-  local _, loss = optim.sgd(feval, params, optim_state)
-  if i % 3 == 0 then
+  local _, loss = optim.adagrad(feval, params, optim_state)
+  if i % 10 == 0 then
     
     local features = x_dev[{{}, {}}]
     local labels = y_dev[{{}, 1}]
