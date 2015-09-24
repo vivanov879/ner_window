@@ -105,14 +105,11 @@ function gen_batch()
     data_index = 1
   end
   start_index = end_index - batch_size
+  data_index = data_index + batch_size
   
-  features = x_train[{{data_index, data_index + batch_size - 1}, {}}]
-  labels = y_train[{{data_index, data_index + batch_size - 1}, 1}]
+  features = x_train[{{start_index, end_index-1}, {}}]
+  labels = y_train[{{start_index, end_index-1}, 1}]
     
-  data_index = data_index + 1
-  if data_index > n_data then 
-    data_index = 1
-  end
   return features, labels
 end
 

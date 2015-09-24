@@ -108,6 +108,7 @@ function gen_batch()
     data_index = 1
   end
   start_index = end_index - batch_size
+  data_index = data_index + batch_size
   
   features = torch.Tensor(batch_size, x_train:size(2), word_vectors:size(2))
   labels = torch.Tensor(batch_size)
@@ -118,10 +119,6 @@ function gen_batch()
     end
   end
   
-  data_index = data_index + 1
-  if data_index > n_data then 
-    data_index = 1
-  end
   return features, labels
 end
 
