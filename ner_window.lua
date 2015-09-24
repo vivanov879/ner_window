@@ -94,7 +94,7 @@ x_dev = convert2tensors(x_dev_raw)
 y_dev = convert2tensors(y_dev_raw)
 
 
-batch_size = 10000
+batch_size = 50000
 n_data = x_train:size(1)
 data_index = 1
 
