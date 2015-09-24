@@ -182,7 +182,7 @@ for i = 1, 200 do
 end
 
 
-
+tagnames = {"O", "LOC", "MISC", "ORG", "PER"}
 -- input words that give the highest probability P(class | word)
 for word_position = 1, x_train:size(2) do
   for considered_class = 1, 5 do
@@ -204,7 +204,7 @@ for word_position = 1, x_train:size(2) do
       end
         
     end
-    print(string.format('%s has highest probability for class %d in position %s', vocabulary[current_argmax], considered_class, word_position))
+    print(string.format('%s has highest probability for class %d ( %s ) in position %s', vocabulary[current_argmax], considered_class, tagnames[considered_class], word_position))
   end
 end
 
